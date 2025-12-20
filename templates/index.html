@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pneumonia Detection</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h1>🩻 Pneumonia Detection (Chest X-ray)</h1>
+<p class="warning">⚠️ Educational use only. Not a medical device.</p>
+
+<form method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" accept="image/*" required>
+
+    <label>Decision Threshold</label>
+    <input type="range" name="threshold" min="0.1" max="0.9" step="0.05" value="0.5"
+           oninput="this.nextElementSibling.value=this.value">
+    <output>0.5</output>
+
+    <button type="submit">Predict</button>
+</form>
+
+{% if result %}
+<div class="result">
+    <h2>Prediction: {{ result.prediction }}</h2>
+    <p>P(Pneumonia): {{ result.p_pneumonia }}</p>
+    <p>P(Normal): {{ result.p_normal }}</p>
+    <p>Confidence: {{ result.confidence }}</p>
+</div>
+{% endif %}
+
+</body>
+</html>

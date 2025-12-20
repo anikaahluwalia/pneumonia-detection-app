@@ -1,0 +1,27 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+}
+
+.warning {
+    color: darkred;
+}
+
+form {
+    margin-top: 20px;
+}
+
+button {
+    margin-top: 15px;
+    padding: 10px;
+    width: 100%;
+}
+
+.result {
+    margin-top: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    background: #f8f8f8;
+}
