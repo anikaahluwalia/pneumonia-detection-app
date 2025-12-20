@@ -1,29 +1,29 @@
 import os
 import json
-import urllib.request
+import gdown
 import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
 
 MODEL_PATH = "models/pneumonia_model.keras"
-MODEL_URL = "https://drive.google.com/uc?export=download&id=1xJoKVqimMWcOOM1QTF8VIXXPrk1KYGs3"
+MODEL_URL = "https://drive.google.com/file/d/1xJoKVqimMWcOOM1QTF8VIXXPrk1KYGs3/view"
 METRICS_PATH = "models/metrics.json"
 IMG_SIZE = (224, 224)
 
-# ------------------ LOAD MODEL ------------------
+
 @st.cache_resource
 def load_model():
-    os.makedirs("models", exist_ok=True)
-
-    # Download model if missing
     if not os.path.exists(MODEL_PATH):
-        with st.spinner("Downloading model (first run only)..."):
-            urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+        st.error("Model file missing: models/pneumonia_model.keras")
+        st.stop()
 
     model = tf.keras.models.load_model(MODEL_PATH)
-    model(tf.zeros((1, 224, 224, 3)))  # build graph once
+    model(tf.zeros((1, 224, 224, 3)))
+
     return model
+
+
 
 @st.cache_data
 def load_metrics():
@@ -31,7 +31,6 @@ def load_metrics():
         with open(METRICS_PATH) as f:
             return json.load(f)
     else:
-        # Safe fallback so app does not crash
         return {
             "accuracy": 0.0,
             "precision": 0.0,
@@ -44,10 +43,9 @@ st.set_page_config(
     layout="wide",
 )
 
-# ------------------ HEADER ------------------
 st.markdown(
     """
-    <h1 style="text-align:center;">🩻 Pneumonia Detection (Chest X-ray)</h1>
+    <h1 style="text-align:center;">🩻 Pneumonia Detection</h1>
     <p style="text-align:center; color: gray;"></p>
     """,
     unsafe_allow_html=True,
@@ -58,20 +56,10 @@ st.warning(
 )
 
 model = load_model()
-metrics = load_metrics()
 
-# ------------------ MODEL STATS ------------------
-st.subheader("📊 Model Performance (Test Set)")
-
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Accuracy", f"{metrics['accuracy']:.2%}")
-c2.metric("Precision", f"{metrics['precision']:.2%}")
-c3.metric("Recall", f"{metrics['recall']:.2%}")
-c4.metric("ROC-AUC", f"{metrics['roc_auc']:.2f}")
 
 st.divider()
 
-# ------------------ UPLOAD ------------------
 st.subheader("📤 Upload a Chest X-ray")
 
 uploaded = st.file_uploader(
@@ -89,17 +77,17 @@ threshold = st.slider(
 )
 
 if uploaded is not None:
-    # Load & preprocess image
+
     img = Image.open(uploaded).convert("RGB")
     img = img.resize(IMG_SIZE)
     img_array = np.array(img) / 255.0
     img_batch = np.expand_dims(img_array, axis=0)
 
-    # Predict
+
     prob = float(model.predict(img_batch, verbose=0)[0][0])
     prediction = "PNEUMONIA" if prob >= threshold else "NORMAL"
 
-    # Confidence label
+
     confidence_gap = abs(prob - threshold)
     if confidence_gap > 0.25:
         confidence = "High"
@@ -108,7 +96,7 @@ if uploaded is not None:
     else:
         confidence = "Low"
 
-    # ------------------ DISPLAY ------------------
+
     col1, col2 = st.columns([1, 1])
 
     with col1:
