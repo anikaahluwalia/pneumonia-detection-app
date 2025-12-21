@@ -3,16 +3,19 @@ import numpy as np
 from PIL import Image
 import io
 
-from model_loader import load_model
-
 app = Flask(__name__)
-model = load_model()
 
 IMG_SIZE = (224, 224)
+model = None   # lazy load
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    global model
     result = None
+
+    if model is None:
+        from model_loader import load_model
+        model = load_model()
 
     if request.method == "POST":
         file = request.files.get("file")
@@ -47,5 +50,6 @@ def index():
     return render_template("index.html", result=result)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+    app.run(debug=False, use_reloader=False)
+
 
