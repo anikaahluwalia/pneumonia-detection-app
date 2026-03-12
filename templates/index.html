@@ -1,77 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Pneumonia Detection</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pneumonia Detection — AI Chest X-Ray Analysis</title>
+  <meta name="description" content="AI-powered chest X-ray analysis for pneumonia detection. Educational demo only." />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,800,900,400,500&display=swap" rel="stylesheet" />
 </head>
 <body>
+  <!-- Background effects -->
+  <div class="ambient-glow"></div>
+  <div class="grid-pattern"></div>
 
-<div class="page">
-    <div class="card">
+  <div class="page-wrapper">
+    <div class="container">
 
-        <h1>🩻 Pneumonia Detection</h1>
-        <p class="subtitle">Chest X-ray Image Analysis</p>
-
-        <p class="warning">
-            ⚠️ Educational use only. This tool is <strong>not</strong> a medical device.
-        </p>
-
-        <form method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label>Upload Chest X-ray</label>
-                <input type="file" name="file" accept="image/*" required>
-            </div>
-
-            <div class="form-group">
-                <label>Decision Threshold</label>
-                <div class="slider-row">
-                    <input type="range"
-                           name="threshold"
-                           min="0.1"
-                           max="0.9"
-                           step="0.05"
-                           value="0.5"
-                           oninput="this.nextElementSibling.value=this.value">
-                    <output>0.5</output>
-                </div>
-            </div>
-
-            <button type="submit">Run Prediction</button>
-        </form>
-
-        {% if result %}
-        <div class="result">
-            <h2>Prediction Result</h2>
-
-            <div class="result-grid">
-                <div>
-                    <span class="label">Diagnosis</span>
-                    <span class="value {{ 'danger' if result.prediction == 'PNEUMONIA' else 'safe' }}">
-                        {{ result.prediction }}
-                    </span>
-                </div>
-
-                <div>
-                    <span class="label">P(Pneumonia)</span>
-                    <span class="value">{{ result.p_pneumonia }}</span>
-                </div>
-
-                <div>
-                    <span class="label">P(Normal)</span>
-                    <span class="value">{{ result.p_normal }}</span>
-                </div>
-
-                <div>
-                    <span class="label">Confidence</span>
-                    <span class="value">{{ result.confidence }}</span>
-                </div>
-            </div>
+      <!-- Header -->
+      <div class="header">
+        <div class="icon-box">
+          <img src="{{ url_for('static', filename='xray-icon.png') }}" alt="X-ray icon" class="icon-img" />
         </div>
-        {% endif %}
+        <h1 class="title">Pneumonia<span class="title-accent"> Detection</span></h1>
+        <p class="subtitle">AI-assisted chest X-ray image analysis</p>
+      </div>
+
+      <!-- Main Card -->
+      <div class="main-card">
+        <div class="card-glow-line"></div>
+        <div class="card-body">
+          <form method="POST" enctype="multipart/form-data">
+
+            <!-- Disclaimer -->
+            <div class="disclaimer">
+              <svg class="disclaimer-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              <span>Educational use only. This tool is not a medical device.</span>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="section">
+              <label class="section-label">
+                <span class="step-badge">1</span>
+                Upload X-Ray Image
+              </label>
+              <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+                <div class="dropzone-icon-wrap">
+                  <svg class="dropzone-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                </div>
+                <p class="dropzone-text"><span class="dropzone-link">Click to upload</span> or drag and drop</p>
+                <p class="dropzone-hint">PNG, JPG, or DICOM formats</p>
+                <input type="file" id="file-input" name="file" accept="image/*" class="sr-only" />
+              </div>
+              <!-- File info chip (hidden until file selected) -->
+              <div class="file-chip" id="file-chip" style="display:none;">
+                <div class="file-chip-info">
+                  <div class="file-chip-icon-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                  </div>
+                  <div class="file-chip-text">
+                    <span class="file-chip-name" id="file-name"></span>
+                    <span class="file-chip-size" id="file-size"></span>
+                  </div>
+                </div>
+                <button type="button" class="file-chip-remove" id="file-remove">&times;</button>
+              </div>
+              <!-- Preview -->
+              <div class="preview-wrap" id="preview-wrap" style="display:none;">
+                <img id="preview-img" class="preview-img" alt="X-ray preview" />
+              </div>
+            </div>
+
+            <!-- Threshold Section -->
+            <div class="section">
+              <label class="section-label" for="threshold">
+                <span class="section-label-left">
+                  <span class="step-badge">2</span>
+                  Decision Threshold
+                </span>
+                <span class="threshold-value" id="threshold-display">0.50</span>
+              </label>
+              <div class="slider-wrap">
+                <input type="range" id="threshold" name="threshold" min="0.05" max="0.95" step="0.01" value="0.50" class="premium-slider" />
+              </div>
+              <div class="slider-labels">
+                <span>Conservative (0.95)</span>
+                <span>Aggressive (0.05)</span>
+              </div>
+            </div>
+
+            <!-- CTA Button -->
+            <button type="submit" class="cta-btn" id="cta-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .963L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+              Run Prediction
+              <span class="btn-shimmer"></span>
+            </button>
+
+          </form>
+
+          <!-- Error -->
+          {% if error %}
+          <div class="error-alert">
+            <b>Error:</b> {{ error }}
+          </div>
+          {% endif %}
+
+          <!-- Result -->
+          {% if result %}
+          <div class="result-section">
+            <div class="diagnosis-card {% if result.prediction == 'PNEUMONIA' %}diagnosis-pneumonia{% else %}diagnosis-normal{% endif %}">
+              <div class="diagnosis-row">
+                <div class="diagnosis-left">
+                  <div class="diagnosis-icon-wrap {% if result.prediction == 'PNEUMONIA' %}diagnosis-icon-pneumonia{% else %}diagnosis-icon-normal{% endif %}">
+                    {% if result.prediction == 'PNEUMONIA' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <div class="diagnosis-label">Diagnosis</div>
+                    <div class="diagnosis-value {% if result.prediction == 'PNEUMONIA' %}text-destructive{% else %}text-primary{% endif %}">{{ result.prediction }}</div>
+                  </div>
+                </div>
+                <div class="confidence-pill {% if result.prediction == 'PNEUMONIA' %}confidence-pneumonia{% else %}confidence-normal{% endif %}">
+                  {{ result.confidence }} confidence
+                </div>
+              </div>
+          
+              <div class="confidence-bar-track">
+                <div class="confidence-bar-fill {% if result.prediction == 'PNEUMONIA' %}bar-pneumonia{% else %}bar-normal{% endif %}" style="width: {{ result.p_pneumonia * 100 }}%;"></div>
+              </div>
+            </div>
+          
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-value">{{ "%.3f"|format(result.p_pneumonia) }}</div>
+                <div class="metric-label">P(Pneumonia)</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">{{ "%.3f"|format(result.p_normal) }}</div>
+                <div class="metric-label">P(Normal)</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">{{ result.confidence }}</div>
+                <div class="metric-label">Confidence</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">{{ "%.2f"|format(result.threshold) }}</div>
+                <div class="metric-label">Threshold</div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <p class="footer-text">
+        This is a demonstration project and should not be used for medical diagnosis.<br />
+        Model performance is not evaluated for clinical use.
+      </p>
 
     </div>
-</div>
+  </div>
 
+  <script>
+    // Threshold slider
+    const slider = document.getElementById('threshold');
+    const display = document.getElementById('threshold-display');
+    function updateSlider() {
+      const val = parseFloat(slider.value);
+      display.textContent = val.toFixed(2);
+      const pct = ((val - 0.05) / 0.9) * 100;
+      slider.style.background = `linear-gradient(to right, hsl(213 94% 58%) 0%, hsl(234 90% 65%) ${pct}%, hsl(217 30% 22%) ${pct}%)`;
+    }
+    slider.addEventListener('input', updateSlider);
+    updateSlider();
+
+    // File upload
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const fileChip = document.getElementById('file-chip');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const fileRemove = document.getElementById('file-remove');
+    const previewWrap = document.getElementById('preview-wrap');
+    const previewImg = document.getElementById('preview-img');
+
+    function showFile(file) {
+      fileName.textContent = file.name;
+      fileSize.textContent = (file.size / 1024).toFixed(0) + ' KB';
+      dropzone.style.display = 'none';
+      fileChip.style.display = 'flex';
+      // Preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        previewWrap.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files[0]) showFile(e.target.files[0]);
+    });
+
+    fileRemove.addEventListener('click', () => {
+      fileInput.value = '';
+      dropzone.style.display = 'flex';
+      fileChip.style.display = 'none';
+      previewWrap.style.display = 'none';
+    });
+
+    // Drag and drop
+    ['dragenter', 'dragover'].forEach(evt => {
+      dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('dropzone-active'); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('dropzone-active'); });
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        // Set file to input via DataTransfer
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+        showFile(file);
+      }
+    });
+  </script>
 </body>
 </html>
