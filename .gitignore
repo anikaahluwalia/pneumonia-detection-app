@@ -1,7 +1,13 @@
-models/
-data/
-*.keras
+# Python
 __pycache__/
+*.pyc
 .venv/
-.DS_Store
 venv/
+
+# Downloaded model weights (fetched at runtime by model_loader.py)
+models/
+
+# Env / IDE
+.env
+.vscode/
+.DS_Store

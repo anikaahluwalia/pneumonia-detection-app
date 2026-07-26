@@ -5,9 +5,7 @@ import urllib.request
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-MODEL_DIR = "models"
-MODEL_PATH = os.path.join(MODEL_DIR, "pneumonia_model.keras")
-MODEL_URL = "https://drive.google.com/uc?export=download&id=1xJoKVqimMWcOOM1QTF8VIXXPrk1KYGs3"
+from config import MODEL_DIR, MODEL_PATH, MODEL_URL
 
 
 def load_model():

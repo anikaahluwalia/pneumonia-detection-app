@@ -4,9 +4,10 @@ from PIL import Image, UnidentifiedImageError
 import io
 import traceback
 
+from config import IMG_SIZE, HOST, PORT
+
 app = Flask(__name__)
 
-IMG_SIZE = (224, 224)
 model = None
 model_error = None
 
@@ -87,5 +88,4 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5051, debug=False, use_reloader=False)
-    
+    app.run(host=HOST, port=PORT, debug=False, use_reloader=False)
