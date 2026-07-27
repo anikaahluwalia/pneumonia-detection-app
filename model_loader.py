@@ -1,4 +1,5 @@
 import os
+import re
 
 # Must be set before importing TensorFlow
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -7,20 +8,27 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from config import MODEL_DIR, MODEL_PATH, MODEL_URL
 
 
+def _extract_drive_id(url_or_id):
+    """Accepts either a raw Google Drive file id, or a full Drive URL, and
+    returns just the file id."""
+    match = re.search(r"[-\w]{25,}", url_or_id)
+    return match.group(0) if match else url_or_id
+
+
 def _download_model():
-    """Download the model weights, handling Google Drive's large-file
-    confirmation page correctly (plain urllib fails on this silently)."""
+    """Download the model weights via gdown, using the file id directly.
+    This avoids relying on the `fuzzy` argument, which isn't present in
+    all gdown versions."""
     import gdown
 
-    print("Downloading model...")
-    gdown.download(url=MODEL_URL, output=MODEL_PATH, quiet=False, fuzzy=True)
+    file_id = _extract_drive_id(MODEL_URL)
+    print(f"Downloading model (drive id: {file_id})...")
+    gdown.download(id=file_id, output=MODEL_PATH, quiet=False)
 
     if not os.path.exists(MODEL_PATH) or os.path.getsize(MODEL_PATH) < 10_000:
-        # A valid Keras model file should be well over 10KB. If it's tiny,
-        # gdown most likely saved an HTML error/warning page instead.
         raise RuntimeError(
             "Model download failed or returned an invalid file "
-            "(check that MODEL_URL points to a public, direct Google Drive file id)."
+            "(check that MODEL_URL points to a public Google Drive file)."
         )
 
 

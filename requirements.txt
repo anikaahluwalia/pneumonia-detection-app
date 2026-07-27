@@ -3,5 +3,5 @@ tensorflow==2.16.2
 numpy<2
 pillow
 gunicorn
-gdown
+gdown>=5.1.0
  
