@@ -1,8 +1,9 @@
-# 🫁 Pneumonia Detection App
+# 🫁 PulmoLens - Pneumonia Detection Tool
 
 **[▶ Live demo](https://app.supademo.com/demo/cmmmzplt11t4q9cvjl4zaqgpy?utm_source=link)** — click through the app without installing anything.
 
-A web app that classifies chest X-rays as Pneumonia or Normal using a CNN,
+_Pulmo_ - latin for the lungs
+A web app that classifies chest X-rays as Pneumonia or Normal using a convolutional neural network (CNN),
 with an adjustable decision threshold and confidence labelling.
 
 ![App screenshot](static/screenshot.png)
