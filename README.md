@@ -1,24 +1,43 @@
 # 🫁 Pneumonia Detection App
 
-## Overview
-A machine learning web app that detects pneumonia from chest X-ray images. Users upload an X-ray and a CNN model predicts Pneumonia vs. Normal, along with a confidence score.
+**[▶ Live demo](https://app.supademo.com/demo/cmmmzplt11t4q9cvjl4zaqgpy?utm_source=link)** — click through the app without installing anything.
 
-This project demonstrates end-to-end ML deployment: model training, backend inference, and a frontend UI — for educational purposes only, not clinical use.
+A web app that classifies chest X-rays as Pneumonia or Normal using a CNN,
+with an adjustable decision threshold and confidence labelling.
 
-## Features
-- Upload chest X-ray images for analysis
-- Binary classification: Pneumonia vs. Normal
-- Adjustable decision threshold
-- Trained Convolutional Neural Network (CNN)
-- Flask-based backend for model inference
+![App screenshot](static/screenshot.png)
 
-## Model
-- Architecture: Convolutional Neural Network (CNN)
-- Framework: TensorFlow / Keras
-- Input: Chest X-ray images (resized to 224x224 & normalized)
-- Output: Probability score + predicted class
+## What it does
 
-## Tech Stack
-**Frontend:** HTML, CSS
-**Backend:** Python, Flask
-**ML:** TensorFlow / Keras, NumPy, Pillow
+- Upload a chest X-ray and get a prediction with probabilities for both classes
+- **Adjustable decision threshold** — set how strict the model is. Lowering it
+  catches more pneumonia cases at the cost of more false alarms, which matters
+  differently depending on who's using it
+- **Confidence labelling** — results are marked high, medium, or low confidence
+  based on how far the score sits from the threshold, so a borderline 0.51
+  doesn't look identical to a confident 0.98
+- Input validation: rejects non-image files and out-of-range thresholds
+
+## Running it
+
+```bash
+git clone https://github.com/anikaahluwalia/pneumonia-detection-app.git
+cd pneumonia-detection-app
+pip install -r requirements.txt
+python app.py
+```
+
+Then open `http://localhost:PORT`.
+
+Model weights download automatically on first run, so the first startup is slower.
+
+## How it works
+
+Uploads are converted to RGB, resized to 224x224, and normalized to [0,1] —
+the same preprocessing used during training. Mismatched preprocessing between
+training and inference was the main bug in early versions.
+
+The model is a CNN built in TensorFlow/Keras. Weights are hosted externally
+rather than committed to the repo.
+
+**Stack:** Python, Flask, TensorFlow/Keras, NumPy, Pillow
